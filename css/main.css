@@ -1,0 +1,654 @@
+        /* Custom CSS variables for dynamic branding */
+        :root {
+            --brand-color: #E4002B;
+            --brand-tagline-color: #6D6E71; /* General UI grey */
+            --brand-contrast-text-color: #2B2B2B; /* Darker grey for colored backgrounds */
+            --brand-body-text-color: #374151; /* Default body text (gray-700) */
+            --app-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            /* Artwork-style icon palette (used when data-fixed-colors="true") */
+            /* Black Widow: high-contrast defaults for light theme */
+            --widow-body-fill: #111827;          /* gray-900 body for definition on light */
+            --widow-outline-stroke: #EF4444;     /* red-500 outline */
+            --widow-leg-stroke: #374151;         /* gray-700 legs */
+            --widow-mark-fill: #EF4444;          /* red-500 hourglass */
+            --widow-stroke-width: 2.4;           /* thicker for readability */
+            /* Brown Recluse: high-contrast defaults for light theme */
+            --recluse-body-fill: #6B7280;        /* gray-500 body */
+            --recluse-outline-stroke: #111827;   /* gray-900 outline */
+            --recluse-leg-stroke: #4B5563;       /* gray-600 legs */
+            --recluse-mark-stroke: #F59E0B;      /* amber-500 violin mark */
+            --recluse-stroke-width: 2.4;         /* thicker for readability */
+        }
+
+        /* Dark theme variable overrides for readable text */
+        html.theme-dark, body.theme-dark, .theme-dark {
+            --brand-body-text-color: #E5E7EB; /* gray-200 */
+            --brand-tagline-color: #9CA3AF;  /* gray-400 for secondary text */
+            --brand-contrast-text-color: #F9FAFB; /* near-white on brand backgrounds */
+            /* Black Widow: dark theme overrides for clarity */
+            --widow-body-fill: #F3F4F6;          /* gray-100 body for visibility on dark */
+            --widow-outline-stroke: #F87171;     /* red-400 outline */
+            --widow-leg-stroke: #D1D5DB;         /* gray-300 legs */
+            --widow-mark-fill: #F87171;          /* red-400 hourglass */
+            /* Brown Recluse: dark theme overrides */
+            --recluse-body-fill: #E5E7EB;        /* gray-200 body */
+            --recluse-outline-stroke: #1F2937;   /* gray-800 outline */
+            --recluse-leg-stroke: #9CA3AF;       /* gray-400 legs */
+            --recluse-mark-stroke: #FBBF24;      /* amber-400 violin */
+        }
+
+        /* Custom animations */
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .pulse-red {
+            animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes count-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .count-up {
+            animation: count-up 0.8s ease-out;
+        }
+        
+        /* Presentation mode styles */
+        .presentation-mode {
+            background: #111827;
+            color: var(--brand-tagline-color);
+        }
+
+        /* Universal grid + widget styles */
+        :root { --accent-red: #D62828; }
+        .universal-grid { grid-auto-flow: dense; }
+        .grid-animate .widget-card { transition: transform 180ms ease, width 180ms ease, height 180ms ease, box-shadow 120ms ease; }
+        .widget-card { position: relative; user-select: none; transition: transform 160ms ease; border-radius: 12px; }
+        .widget-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.08); transform: scale(1.02); }
+        /* Header uses theme-aware background via classes, no hardcoded white */
+        .widget-card .drag-handle { cursor: grab; display: none; }
+        .universal-grid.layout-mode .drag-handle { display: inline-flex; }
+        /* Resize handles: sides + corners */
+        .resize-handle { position: absolute; background: rgba(0,0,0,0.12); display: none; }
+        .universal-grid.layout-mode .resize-handle { display: block; }
+        .resize-handle.handle-top { top: -4px; left: 16px; right: 16px; height: 6px; border-radius: 3px; }
+        .resize-handle.handle-bottom { bottom: -4px; left: 16px; right: 16px; height: 6px; border-radius: 3px; }
+        .resize-handle.handle-left { left: -4px; top: 16px; bottom: 16px; width: 6px; border-radius: 3px; }
+        .resize-handle.handle-right { right: -4px; top: 16px; bottom: 16px; width: 6px; border-radius: 3px; }
+        .resize-handle.handle-tl { top: -6px; left: -6px; width: 12px; height: 12px; border-radius: 50%; }
+        .resize-handle.handle-tr { top: -6px; right: -6px; width: 12px; height: 12px; border-radius: 50%; }
+        .resize-handle.handle-bl { bottom: -6px; left: -6px; width: 12px; height: 12px; border-radius: 50%; }
+        .resize-handle.handle-br { bottom: -6px; right: -6px; width: 12px; height: 12px; border-radius: 50%; }
+        .size-label { position:absolute; top:6px; left:8px; background:rgba(17,24,39,0.85); color:#fff; font-size:11px; padding:2px 6px; border-radius:6px; pointer-events:none; }
+
+        /* Reposition Add Widget to top-right of dashboard area */
+        #dashboardContent { position: relative; }
+        .add-widget-fab { position: absolute; top: 0; right: 0; z-index: 1001; }
+        .add-widget-fab button { box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+
+        /* Drag/resize visual states */
+        .universal-grid.dragging .widget-card { opacity: 0.8; }
+        .universal-grid .widget-card.drag-active { opacity: 1; box-shadow: 0 0 0 2px var(--accent-red) inset, 0 0 0 2px var(--accent-red), 0 12px 24px rgba(0,0,0,0.18); z-index: 3; }
+        .universal-grid.grid-animate .widget-card { transition: transform 180ms ease, width 180ms ease, height 180ms ease, box-shadow 120ms ease; }
+
+        /* Hide manual refresh buttons; dashboard auto-updates */
+        button[onclick="refreshDashboard()"], #mail-refresh { display: none !important; }
+
+        .widget-library-backdrop { position: fixed; inset: 0; background: rgba(17,24,39,0.55); display: none; align-items: center; justify-content: center; z-index: 50; }
+        .widget-library-modal { width: 720px; max-width: 90vw; max-height: 80vh; overflow: auto; background: #fff; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
+        .widget-library-modal header { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; }
+        .widget-library-modal .filters { padding: 12px 16px; display:flex; gap:8px; align-items:center; border-bottom: 1px solid #e5e7eb; }
+        .widget-library-modal .items { padding: 12px 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .widget-library-modal .item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .widget-library-modal footer { padding: 12px 16px; border-top: 1px solid #e5e7eb; display:flex; align-items:center; justify-content:flex-end; gap: 8px; }
+
+        .presentation-mode .kpi-card {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 1px solid #4b5563;
+        }
+        
+        /* Theme styles */
+        .theme-brand {
+            --primary: var(--brand-color);
+            --primary-light: var(--brand-color-light);
+            --secondary: var(--brand-color-dark);
+        }
+
+        /* Light theme overrides for Tailwind dark classes */
+        [data-theme="light"] body { background-color: #f8fafc !important; color: #111827 !important; }
+        [data-theme="light"] #commandBar { background-color: rgba(255,255,255,0.92) !important; border-color: #e5e7eb !important; }
+        [data-theme="light"] .bg-gray-800 { background-color: #ffffff !important; color: #111827 !important; }
+        [data-theme="light"] .bg-gray-800\/50 { background-color: rgba(255,255,255,0.5) !important; }
+        [data-theme="light"] .bg-gray-900\/95 { background-color: rgba(255,255,255,0.95) !important; }
+        [data-theme="light"] .hover\:bg-gray-700:hover { background-color: #f3f4f6 !important; }
+        [data-theme="light"] .border-gray-700, [data-theme="light"] .border-gray-800 { border-color: #e5e7eb !important; }
+        [data-theme="light"] .text-white { color: #111827 !important; }
+        [data-theme="light"] #commandPaletteContainer { background: linear-gradient(135deg, #ffffff, #f3f4f6) !important; }
+
+        /* Hide standalone buttons to unify under Actions menu */
+        #commandBar button[onclick="openWidgetManager()"],
+        #commandBar button[onclick="openSettingsAdminPanel()"] { display: none !important; }
+        
+.theme-dark {
+            --primary: #1f2937;
+            --primary-light: #374151;
+            --secondary: #6b7280;
+            background-color: #111827;
+            color: #e5e7eb;
+}
+
+.theme-light {
+            --primary: #ffffff;
+            --primary-light: #f9fafb;
+            --secondary: #e5e7eb;
+        }
+
+        /* Theme application overrides */
+        body { color: var(--brand-body-text-color); }
+        body.theme-dark { background-color: #111827; color: #e5e7eb; }
+        .theme-dark header { background-color: #1f2937 !important; border-color: #374151 !important; }
+        .theme-dark .bg-white { background-color: #1f2937 !important; }
+        .theme-dark .bg-gray-50 { background-color: #0f172a !important; }
+        .theme-dark .bg-gray-100 { background-color: #111827 !important; }
+        .theme-dark .bg-gray-200 { background-color: #1f2937 !important; }
+        .theme-dark .text-gray-800 { color: #e5e7eb !important; }
+        .theme-dark .text-gray-700 { color: #d1d5db !important; }
+        .theme-dark .text-gray-600 { color: #9ca3af !important; }
+        .theme-dark .text-gray-500 { color: #9ca3af !important; }
+            .theme-dark .border-gray-200 { border-color: #374151 !important; }
+            /* Reduce white boxes on logos in dark mode */
+            /* Remove blend on logo to preserve brand color accuracy */
+  /* Default logos render normally */
+  .theme-dark #brandLogo,
+  .theme-brand #brandLogo { mix-blend-mode: normal; filter: none; background: transparent; }
+
+  /* Only apply blend for Rentokil image with white box */
+  .theme-dark img#brandLogo[src*="Rentokil"],
+  .theme-brand img#brandLogo[src*="Rentokil"] {
+    mix-blend-mode: normal;
+    filter: none;
+    background: transparent;
+  }
+            .theme-dark #logoTextOverlay { z-index: 10; }
+            .theme-dark .border-gray-300 { border-color: #4b5563 !important; }
+        .theme-dark .hover\:bg-gray-50:hover { background-color: #111827 !important; }
+
+        /* Ensure Settings footer buttons are readable in dark mode */
+        .theme-dark #settingsFooter button { color: #E5E7EB !important; border-color: #475569 !important; }
+        .theme-dark #settingsFooter button.bg-brand { color: var(--brand-contrast-text-color) !important; }
+
+        /* Form controls in dark theme */
+        .theme-dark input,
+        .theme-dark select,
+        .theme-dark textarea { background-color: #111827 !important; color: #e5e7eb !important; border-color: #374151 !important; }
+
+        /* Hide any stray standalone checkbox directly under Settings modal root */
+        #settingsModal > input[type="checkbox"] { display: none !important; }
+        .theme-dark input::placeholder,
+        .theme-dark textarea::placeholder { color: #9ca3af !important; }
+
+        body.theme-brand { background-color: var(--primary-light); }
+        .theme-brand header { background-color: var(--primary) !important; color: var(--brand-tagline-color); }
+        .theme-brand .border-gray-200 { border-color: var(--secondary) !important; }
+
+        /* Action menu styles */
+        .action-menu { position: relative; }
+        .action-menu-panel { position: absolute; right: 0; top: 100%; z-index: 50; }
+
+        /* Dynamic branding support */
+        .bg-brand { background-color: var(--brand-color) !important; }
+        .text-brand { color: var(--brand-color) !important; }
+        .text-tagline { color: var(--brand-tagline-color) !important; }
+        .border-brand { border-color: var(--brand-color) !important; }
+        .border-tagline { border-color: var(--brand-tagline-color) !important; }
+        /* Logo overlay text-shadow utilities */
+        .logo-text-shadow-subtle { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+        .logo-text-shadow-medium { text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5); }
+        .logo-text-shadow-strong { text-shadow: 0 3px 5px rgba(0, 0, 0, 0.6); }
+        /* Brand ring utility for active nav emphasis */
+        .ring-brand { outline: 2px solid var(--brand-color); outline-offset: 2px; }
+        /* Scoped override: darker contrast text only on brand background */
+        .bg-brand .text-white { color: var(--brand-contrast-text-color) !important; }
+        .bg-brand .hover\:text-white:hover { color: var(--brand-contrast-text-color) !important; }
+        .bg-brand .border-white { border-color: var(--brand-tagline-color) !important; }
+
+        /* Modal window sizing/resizing */
+        .modal-window {
+            resize: both;
+            overflow: hidden; /* contain content for predictable scrolling */
+            position: relative; /* ensure ::after bottom highlight positions to window */
+            width: var(--modal-width, min(90vw, 1024px)) !important;
+            height: var(--modal-height, min(80vh, 700px)) !important;
+            max-width: none !important;
+            max-height: none !important;
+        }
+        /* Disable previous interior hover bar */
+        .modal-window.hover-delay-active::after { display: none; }
+        /* Neon glow when hovering over resize edges/corners */
+        .modal-resize-handle { transition: box-shadow 0.15s ease; }
+        .modal-resize-handle:hover {
+            box-shadow: 0 0 6px var(--brand-color), 0 0 14px var(--brand-color);
+            background: transparent;
+        }
+        .modal-resize-glow { position: absolute; background: var(--brand-color, #ef4444); opacity: 0; }
+        .modal-resize-handle:hover .modal-resize-glow {
+            opacity: 1;
+            filter: drop-shadow(0 0 6px var(--brand-color)) drop-shadow(0 0 14px var(--brand-color));
+        }
+        .modal-window .modal-body-scroll { overflow: auto; }
+        /* Settings modal should not be resizable */
+        #settingsModal .modal-window { resize: none; }
+        @media (max-width: 640px) {
+            .modal-window { width: calc(100vw - 32px) !important; height: calc(100vh - 32px) !important; }
+        }
+
+        /* Sidebar nav animations */
+        .nav-btn { position: relative; overflow: hidden; }
+        .nav-active { border-left: 3px solid var(--brand-color); }
+        .ripple {
+            position: absolute;
+            width: 8px; height: 8px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 9999px;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(1);
+            animation: ripple-expand 0.6s ease-out forwards;
+        }
+        @keyframes ripple-expand {
+            to { transform: translate(-50%, -50%) scale(30); opacity: 0; }
+        }
+
+        /* Pest-themed icon animations */
+        .icon { display: inline-block; width: 1.25rem; height: 1.25rem; line-height: 1.25rem; }
+        /* Realism: subtle color stroke and depth */
+        .icon { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.12)); }
+        .nav-btn:hover .icon { filter: drop-shadow(0 2px 2px rgba(0,0,0,0.18)) brightness(1.05) saturate(1.1); }
+        .nav-active .icon { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.22)); }
+        .icon-click { transform-origin: center; }
+        /* Click: more lifelike moves per insect type */
+        .nav-active .icon-fly { animation: dart-once 0.8s ease-out 1; }
+        .nav-active .icon-scurry { animation: scurry-once 0.9s ease-out 1; }
+        .nav-active .icon-skitter { animation: skitter-once 0.9s ease-out 1; }
+        .nav-active .icon-spider { animation: drop-once 0.9s ease-out 1; }
+        .nav-active .icon-inch { animation: inch-once 1s ease-out 1; }
+        .nav-active .icon-chirp { animation: chirp-once 0.8s ease-out 1; }
+        .nav-active .icon-swirl { animation: swirl-once 0.8s ease-out 1; }
+        /* Hover loops */
+        .icon-fly:hover { animation: fly-loop 1.4s ease-in-out infinite; }
+        .icon-scurry:hover { animation: scurry-loop 1.2s ease-in-out infinite; }
+        .icon-skitter:hover { animation: skitter-loop 1.2s ease-in-out infinite; }
+        .icon-spider:hover { animation: spider-loop 1.4s ease-in-out infinite; }
+        .icon-inch:hover { animation: inch-loop 1.6s ease-in-out infinite; }
+        .icon-chirp:hover { animation: chirp-loop 1s ease-in-out infinite; }
+        .icon-swirl:hover { animation: swirl-loop 1.2s ease-in-out infinite; }
+
+        /* Micro-transform animations to make SVGs feel alive */
+        svg.icon { transform-box: fill-box; }
+        /* Ensure PNG icons inherit font sizing and align like emojis */
+        img.icon { width: 1em; height: 1em; vertical-align: -0.15em; object-fit: contain; image-rendering: -webkit-optimize-contrast; }
+        /* Treat all PNGs from /Icons/ as emoji-like when used inline */
+        img[src^="/Icons/"] { width: 1em; height: 1em; vertical-align: -0.15em; object-fit: contain; image-rendering: -webkit-optimize-contrast; }
+        .icon-fly .wings { transform-origin: 12px 10px; }
+        .icon-fly:hover .wings { animation: wing-flutter var(--fly-flutter-dur, 0.5s) ease-in-out infinite; animation-delay: var(--fly-flutter-delay, 0s); }
+        .nav-active .icon-fly .wings { animation: wing-dart var(--fly-dart-dur, 0.45s) ease-out 1; }
+        .icon-fly .body { transform-origin: 12px 12px; }
+        .icon-fly:hover .body { animation: body-bob var(--fly-bob-dur, 1.4s) ease-in-out infinite; animation-delay: var(--fly-bob-delay, 0s); }
+
+        .icon-scurry .legs-l, .icon-scurry .legs-r { transform-origin: 12px 13px; }
+        .icon-scurry:hover .legs-l { animation: leg-step-l var(--scurry-step-dur, 0.6s) ease-in-out infinite; animation-delay: var(--scurry-step-delay-l, 0s); }
+        .icon-scurry:hover .legs-r { animation: leg-step-r var(--scurry-step-dur, 0.6s) ease-in-out infinite; animation-delay: var(--scurry-step-delay-r, 0.1s); }
+        .nav-active .icon-scurry .legs-l, .nav-active .icon-scurry .legs-r { animation: leg-splay var(--scurry-splay-dur, 0.5s) ease-out 1; }
+
+        .icon-skitter .legs-l, .icon-skitter .legs-r { transform-origin: 12px 13px; }
+        .icon-skitter:hover .legs-l { animation: leg-jitter-l var(--skitter-jitter-dur, 0.4s) ease-in-out infinite; animation-delay: var(--skitter-jitter-delay-l, 0s); }
+        .icon-skitter:hover .legs-r { animation: leg-jitter-r var(--skitter-jitter-dur, 0.4s) ease-in-out infinite; animation-delay: var(--skitter-jitter-delay-r, 0.05s); }
+        .nav-active .icon-skitter .body { animation: skitter-once 0.9s ease-out 1; }
+
+        .icon-spider .legs, .icon-spider .body { transform-origin: 12px 12px; }
+        .icon-spider:hover .legs { animation: spider-legs-loop var(--spider-legs-dur, 1.8s) ease-in-out infinite; animation-delay: var(--spider-legs-delay, 0s); }
+        .nav-active .icon-spider .body { animation: drop-once 0.9s ease-out 1; }
+
+        .icon-inch .segments { transform-origin: 12px 14px; }
+        .icon-inch:hover .segments { animation: inch-roll var(--inch-roll-dur, 1.6s) ease-in-out infinite; animation-delay: var(--inch-roll-delay, 0s); }
+        .nav-active .icon-inch .segments { animation: inch-once 1s ease-out 1; }
+
+        .icon-chirp .wing { transform-origin: 11px 14px; }
+        .icon-chirp:hover .wing { animation: chirp-flutter var(--chirp-flutter-dur, 0.9s) ease-in-out infinite; animation-delay: var(--chirp-flutter-delay, 0s); }
+        .nav-active .icon-chirp .wing { animation: chirp-once 0.8s ease-out 1; }
+
+        .icon-swirl .wings { transform-origin: 12px 10px; }
+        .icon-swirl:hover .wings { animation: swirl-loop var(--swirl-loop-dur, 1.2s) ease-in-out infinite; animation-delay: var(--swirl-loop-delay, 0s); }
+        .nav-active .icon-swirl .wings { animation: swirl-once 0.8s ease-out 1; }
+
+        @keyframes wing-flutter { 0%,100% { transform: rotate(0deg) } 50% { transform: rotate(12deg) } }
+        @keyframes wing-dart { 0% { transform: rotate(0deg) translate(0,0) } 40% { transform: rotate(18deg) translate(1px,-1px) } 100% { transform: rotate(0deg) translate(0,0) } }
+        @keyframes body-bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-1px) } }
+        @keyframes leg-step-l { 0%,100% { transform: rotate(0deg) } 50% { transform: rotate(10deg) } }
+        @keyframes leg-step-r { 0%,100% { transform: rotate(0deg) } 50% { transform: rotate(-10deg) } }
+        @keyframes leg-splay { 0% { transform: rotate(0deg) } 100% { transform: rotate(12deg) } }
+        @keyframes leg-jitter-l { 0%,100% { transform: rotate(0deg) } 25% { transform: rotate(6deg) } 75% { transform: rotate(-6deg) } }
+        @keyframes leg-jitter-r { 0%,100% { transform: rotate(0deg) } 25% { transform: rotate(-6deg) } 75% { transform: rotate(6deg) } }
+        @keyframes spider-legs-loop { 0%,100% { transform: rotate(0deg) } 50% { transform: rotate(8deg) } }
+        @keyframes inch-roll { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-1px) } }
+        @keyframes chirp-flutter { 0%,100% { transform: rotate(0deg) } 50% { transform: rotate(8deg) } }
+        /* Keyframes */
+        @keyframes fly-loop {
+            0% { transform: translate(0,0) rotate(0deg); }
+            25% { transform: translate(2px,-2px) rotate(-10deg); }
+            50% { transform: translate(-2px,1px) rotate(12deg); }
+            75% { transform: translate(1px,-1px) rotate(-8deg); }
+            100% { transform: translate(0,0) rotate(0deg); }
+        }
+        @keyframes dart-once {
+            0% { transform: translate(0,0) scale(1); }
+            30% { transform: translate(8px,-6px) scale(1.1) rotate(-12deg); }
+            60% { transform: translate(-4px,3px) scale(1) rotate(8deg); }
+            100% { transform: translate(0,0) scale(1); }
+        }
+        @keyframes scurry-loop {
+            0% { transform: translateX(0) }
+            25% { transform: translateX(2px) rotate(2deg) }
+            50% { transform: translateX(-2px) rotate(-2deg) }
+            75% { transform: translateX(1px) rotate(1deg) }
+            100% { transform: translateX(0) }
+        }
+        @keyframes scurry-once {
+            0% { transform: translateX(0) }
+            40% { transform: translateX(10px) }
+            100% { transform: translateX(0) }
+        }
+        @keyframes skitter-loop {
+            0% { transform: translate(0,0) }
+            25% { transform: translate(3px,0) }
+            50% { transform: translate(-3px,1px) }
+            75% { transform: translate(2px,-1px) }
+            100% { transform: translate(0,0) }
+        }
+        @keyframes skitter-once {
+            0% { transform: translate(0,0) }
+            30% { transform: translate(8px,1px) }
+            60% { transform: translate(-6px,-1px) }
+            100% { transform: translate(0,0) }
+        }
+        @keyframes spider-loop {
+            0% { transform: translateY(0) }
+            25% { transform: translateY(2px) }
+            50% { transform: translateY(-2px) }
+            75% { transform: translateY(1px) }
+            100% { transform: translateY(0) }
+        }
+        @keyframes drop-once {
+            0% { transform: translateY(-2px) }
+            40% { transform: translateY(8px) }
+            100% { transform: translateY(0) }
+        }
+        @keyframes inch-loop {
+            0% { transform: translateX(0) }
+            50% { transform: translateX(2px) scaleY(1.05) }
+            100% { transform: translateX(0) }
+        }
+        @keyframes inch-once {
+            0% { transform: translateX(0) }
+            40% { transform: translateX(8px) }
+            100% { transform: translateX(0) }
+        }
+        @keyframes chirp-loop {
+            0%,100% { transform: rotate(0deg) }
+            50% { transform: rotate(10deg) }
+        }
+        @keyframes chirp-once {
+            0% { transform: rotate(0deg) }
+            30% { transform: rotate(12deg) }
+            100% { transform: rotate(0deg) }
+        }
+        @keyframes swirl-loop {
+            0% { transform: rotate(0deg) }
+            50% { transform: rotate(15deg) }
+            100% { transform: rotate(0deg) }
+        }
+        @keyframes swirl-once {
+            0% { transform: rotate(0deg) }
+            40% { transform: rotate(20deg) }
+            100% { transform: rotate(0deg) }
+        }
+        .hover\:bg-brand:hover { background-color: var(--brand-color) !important; }
+        .hover\:text-brand:hover { color: var(--brand-color) !important; }
+        .focus\:ring-brand:focus { --tw-ring-color: var(--brand-color) !important; }
+
+        /* Nav icon visual quality improvements */
+        .nav-btn svg.icon {
+            shape-rendering: geometricPrecision;
+            text-rendering: optimizeLegibility;
+            image-rendering: -webkit-optimize-contrast;
+        }
+        .nav-btn svg.icon *,
+        svg.icon * {
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        svg.icon path,
+        svg.icon line,
+        svg.icon polyline,
+        svg.icon circle,
+        svg.icon rect {
+            vector-effect: non-scaling-stroke;
+        }
+        svg.icon { stroke-width: 1.75; }
+
+        /* Mail feature icons: micro-animations for lively feel */
+        .icon-mail .flap { transform-origin: 12px 7px; }
+        .icon-mail:hover .flap { animation: flap-loop 1.2s ease-in-out infinite; }
+        .icon-label .tag { transform-origin: 6px 12px; }
+        .icon-label:hover .tag { animation: tag-wiggle 1.1s ease-in-out infinite; }
+        .icon-label .hole { transform-origin: 6px 12px; }
+        .icon-label:hover .hole { animation: hole-pulse 1.1s ease-in-out infinite; }
+        .icon-unread .seal { transform-origin: 12px 8px; }
+        .icon-unread:hover .seal { animation: seal-bounce 1.2s ease-in-out infinite; }
+        .icon-search .glass { transform-origin: 11px 11px; }
+        .icon-search:hover .glass { animation: magnify-pulse 1.2s ease-in-out infinite; }
+        .icon-page .arrow { transform-origin: 12px 12px; }
+        .icon-page:hover .arrow { animation: arrow-wiggle 1s ease-in-out infinite; }
+        .icon-thread .bubble { transform-origin: 10px 11px; }
+        .icon-thread:hover .bubble { animation: bubble-bounce 1.2s ease-in-out infinite; }
+        .icon-compose .pencil { transform-origin: 14px 10px; }
+        .icon-compose:hover .pencil { animation: pencil-wiggle 1.1s ease-in-out infinite; }
+        .icon-attach .clip { transform-origin: 12px 5px; }
+        .icon-attach:hover .clip { animation: clip-swing 1.4s ease-in-out infinite; }
+        .icon-send:hover .dart { animation: dart-once 0.8s ease-out 1; }
+
+        @keyframes flap-loop { 0%,100% { transform: rotate(0deg) } 50% { transform: rotate(8deg) } }
+        @keyframes tag-wiggle { 0%,100% { transform: rotate(0deg) } 25% { transform: rotate(6deg) } 75% { transform: rotate(-6deg) } }
+        @keyframes hole-pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.2) } }
+        @keyframes seal-bounce { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-1px) } }
+        @keyframes magnify-pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+        @keyframes arrow-wiggle { 0%,100% { transform: translateX(0) } 50% { transform: translateX(1px) } }
+        @keyframes bubble-bounce { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-1px) } }
+        @keyframes pencil-wiggle { 0%,100% { transform: rotate(0deg) } 50% { transform: rotate(-8deg) } }
+        @keyframes clip-swing { 0%,100% { transform: rotate(0deg) } 50% { transform: rotate(10deg) } }
+
+        /* Modal Enhancements */
+        .modal-resizable {
+            resize: both;
+            overflow: auto;
+            max-width: 95vw;
+            max-height: 85vh;
+            min-width: 320px;
+            min-height: 240px;
+        }
+        .scroll-x { overflow-x: auto; }
+
+        /* Settings Panel Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .settings-section {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1.5rem;
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .settings-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--brand-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: var(--brand-tagline-color);
+            background-color: white;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--brand-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--brand-color);
+            color: var(--brand-contrast-text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--brand-color-dark);
+        }
+
+        .btn-secondary {
+            background-color: #6b7280;
+            color: var(--brand-contrast-text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+        .btn-danger {
+            background-color: #dc2626;
+            color: var(--brand-contrast-text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        .system-info {
+            background-color: #f9fafb;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .info-value {
+            color: #374151;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Ensure native selects and inputs use tagline grey text across light theme */
+        select, input, textarea { color: var(--brand-tagline-color); }

@@ -1,5 +1,6 @@
 // Transformers to unify legacy sources into UnifiedDeals
 // Sources: Brad cadence, Cody L tracker, Houston New Start (deprecated)
+// OPTIMIZED: Single-pass processing with inline transformations
 
 function normalizeCurrency(v){
   if (v == null || v === '') return 0;
@@ -29,9 +30,9 @@ function keyForDup(customer, ae, createdAt){
   return `${String(customer).toLowerCase().trim()}::${String(ae).toLowerCase().trim()}::${bucket.toISOString().slice(0,10)}`;
 }
 
-// Map raw entries from each source to UnifiedDeals
-function transformBradCadence(rows = []){
-  return rows.map(r => ({
+// OPTIMIZED: Unified transformation function to avoid code duplication
+function transformRow(r, sourceType = 'brad'){
+  const deal = {
     DealId: String(r.ID || r.DealId || ''),
     Customer: String(r.Customer || r.Customer_Name || ''),
     AE: String(r.AE || r.Sales_Rep || ''),
@@ -48,84 +49,75 @@ function transformBradCadence(rows = []){
     LostReason: String(r.Lost_Reason || r.LostReason || ''),
     Notes: String(r.Notes || ''),
     Tags: Array.isArray(r.Tags) ? r.Tags : []
-  }));
+  };
+
+  if (sourceType === 'houston') {
+    deal._sourceDeprecated = true;
+  }
+
+  return deal;
+}
+
+// Backward compatibility: individual transformers (now just wrappers)
+function transformBradCadence(rows = []){
+  return rows.map(r => transformRow(r, 'brad'));
 }
 
 function transformCodyTracker(rows = []){
-  return rows.map(r => ({
-    DealId: String(r.ID || r.DealId || ''),
-    Customer: String(r.Customer || r.Customer_Name || ''),
-    AE: String(r.AE || r.Sales_Rep || ''),
-    Branch: String(r.Branch || ''),
-    Vertical: String(r.Vertical || ''),
-    LeadSource: String(r.Lead_Source || r.Source || ''),
-    Stage: String(r.Stage || r.Status || 'Lead'),
-    InitialFee: normalizeCurrency(r.Initial_Fee || r.InitialFee),
-    MonthlyFee: normalizeCurrency(r.Monthly_Fee || r.MonthlyFee),
-    FrequencyPY: Number(r.Frequency || r.FrequencyPY || 0),
-    AnnualValue: normalizeCurrency(r.Annual_Value || r.AnnualValue),
-    CreatedAt: parseDate(r.Created_At || r.CreatedAt)?.toISOString() || null,
-    ClosedAt: parseDate(r.Closed_At || r.ClosedAt)?.toISOString() || null,
-    LostReason: String(r.Lost_Reason || r.LostReason || ''),
-    Notes: String(r.Notes || ''),
-    Tags: Array.isArray(r.Tags) ? r.Tags : []
-  }));
+  return rows.map(r => transformRow(r, 'cody'));
 }
 
-// Deprecated: Houston New Start — still transform but mark as deprecated
 function transformHoustonNewStart(rows = []){
-  return rows.map(r => ({
-    DealId: String(r.ID || r.DealId || ''),
-    Customer: String(r.Customer || r.Customer_Name || ''),
-    AE: String(r.AE || r.Sales_Rep || ''),
-    Branch: String(r.Branch || ''),
-    Vertical: String(r.Vertical || ''),
-    LeadSource: String(r.Lead_Source || r.Source || ''),
-    Stage: String(r.Stage || r.Status || 'Lead'),
-    InitialFee: normalizeCurrency(r.Initial_Fee || r.InitialFee),
-    MonthlyFee: normalizeCurrency(r.Monthly_Fee || r.MonthlyFee),
-    FrequencyPY: Number(r.Frequency || r.FrequencyPY || 0),
-    AnnualValue: normalizeCurrency(r.Annual_Value || r.AnnualValue),
-    CreatedAt: parseDate(r.Created_At || r.CreatedAt)?.toISOString() || null,
-    ClosedAt: parseDate(r.Closed_At || r.ClosedAt)?.toISOString() || null,
-    LostReason: String(r.Lost_Reason || r.LostReason || ''),
-    Notes: String(r.Notes || ''),
-    Tags: Array.isArray(r.Tags) ? r.Tags : [],
-    _sourceDeprecated: true
-  }));
+  return rows.map(r => transformRow(r, 'houston'));
 }
 
+// OPTIMIZED: Merge logic extracted to avoid duplication
+function mergeDeal(existing, newDeal) {
+  const preferNew = existing._sourceDeprecated && !newDeal._sourceDeprecated;
+  const preferred = preferNew ? newDeal : existing;
+
+  return {
+    ...preferred,
+    AnnualValue: Math.max(newDeal.AnnualValue || 0, existing.AnnualValue || 0),
+    InitialFee: Math.max(newDeal.InitialFee || 0, existing.InitialFee || 0),
+    MonthlyFee: Math.max(newDeal.MonthlyFee || 0, existing.MonthlyFee || 0),
+    Tags: Array.from(new Set([...(preferred.Tags||[]), ...(newDeal.Tags||[]), ...(existing.Tags||[])]))
+  };
+}
+
+// OPTIMIZED: Single-pass processing instead of 4 separate loops
 function unifyDeals(bradRows = [], codyRows = [], houstonRows = []){
-  const brad = transformBradCadence(bradRows);
-  const cody = transformCodyTracker(codyRows);
-  const houston = transformHoustonNewStart(houstonRows);
-  const all = [...brad, ...cody, ...houston];
   const byKey = new Map();
-  for (const d of all){
-    const key = keyForDup(d.Customer, d.AE, d.CreatedAt);
-    const existing = byKey.get(key);
-    if (!existing) {
-      byKey.set(key, d);
-    } else {
-      // De-dupe with fuzzy annual value match
-      if (fuzzyAnnualMatch(d.AnnualValue, existing.AnnualValue)) {
-        // Prefer non-deprecated sources and richer data
-        const preferD = existing._sourceDeprecated ? d : existing;
-        const merged = {
-          ...preferD,
-          AnnualValue: Math.max(d.AnnualValue || 0, existing.AnnualValue || 0),
-          InitialFee: Math.max(d.InitialFee || 0, existing.InitialFee || 0),
-          MonthlyFee: Math.max(d.MonthlyFee || 0, existing.MonthlyFee || 0),
-          Tags: Array.from(new Set([...(preferD.Tags||[]), ...(d.Tags||[]), ...(existing.Tags||[])]))
-        };
-        byKey.set(key, merged);
+
+  // Process all sources in a single iteration with inline transformation
+  const sources = [
+    { type: 'brad', rows: bradRows },
+    { type: 'cody', rows: codyRows },
+    { type: 'houston', rows: houstonRows }
+  ];
+
+  for (const {type, rows} of sources) {
+    for (const row of rows) {
+      // Inline transformation
+      const deal = transformRow(row, type);
+      const key = keyForDup(deal.Customer, deal.AE, deal.CreatedAt);
+      const existing = byKey.get(key);
+
+      if (!existing) {
+        byKey.set(key, deal);
       } else {
-        // Different values — treat as separate entries by salting the key
-        const saltedKey = `${key}::${String(d.AnnualValue)}`;
-        byKey.set(saltedKey, d);
+        // De-dupe with fuzzy annual value match
+        if (fuzzyAnnualMatch(deal.AnnualValue, existing.AnnualValue)) {
+          byKey.set(key, mergeDeal(existing, deal));
+        } else {
+          // Different values — treat as separate entries by salting the key
+          const saltedKey = `${key}::${String(deal.AnnualValue)}`;
+          byKey.set(saltedKey, deal);
+        }
       }
     }
   }
+
   return Array.from(byKey.values());
 }
 
