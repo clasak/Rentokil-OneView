@@ -15123,8 +15123,112 @@ function composeOnboardingEmail() {
       function minutesLate(appt) { const sched = new Date(appt.ScheduledStart).getTime(); const actual = new Date(appt.ActualStart).getTime(); return Math.max(0, Math.round((actual - sched) / 60000)); }
       function withinDays(dateA, dateB, days) { const a = new Date(dateA).getTime(); const b = new Date(dateB).getTime(); return Math.abs(a - b) <= days * 24 * 60 * 60 * 1000; }
       async function aggregateBranchManagerKpi(provider, params) { const { branch, from, to } = params; const [users, opps, acts, appts, wos, scans, packets] = await Promise.all([ provider.loadUsers(), provider.loadOpportunities(from, to, branch), provider.loadActivities(from, to, branch), provider.loadAppointments(from, to, branch), provider.loadWorkOrders(from, to, branch), provider.loadScans(from, to, branch), provider.loadStartPackets(from, to, branch) ]); const branchUsers = users.filter(u => u.Branch === branch && u.Active); const aeUsers = branchUsers.filter(u => u.Role === 'AE'); const opsUsers = branchUsers.filter(u => u.Role === 'Ops'); const techUsers = branchUsers.filter(u => u.Role === 'Tech'); const won = opps.filter(o => o.ClosedWonAt); const lost = opps.filter(o => o.ClosedLostAt); const winRate = pct(won.length, won.length + lost.length); const completedAppts = appts.filter(a => a.Status === 'Completed'); const onTimeNumerator = completedAppts.filter(a => minutesLate(a) <= 15).length; const onTimePct = pct(onTimeNumerator, completedAppts.length); const callbacks = wos.filter(w => w.IsCallback && withinDays(w.CallbackDate || w.OriginalServiceDate, w.OriginalServiceDate, 14)); const callbackPct = pct(callbacks.length, wos.length); const expectedTotal = scans.reduce((sum, s) => sum + (s.ExpectedCount || 0), 0); const scannedTotal = scans.reduce((sum, s) => sum + (s.ScannedCount || 0), 0); const scanCompliancePct = pct(scannedTotal, expectedTotal); const packetDenom = packets.length; const packetGood = packets.filter(p => p.ApprovedAt && new Date(p.ApprovedAt) <= new Date(p.FirstServiceDate)).length; const startPacketSlaPct = pct(packetGood, packetDenom); return { source: 'demo', summary: [ { key: 'winRate', label: 'AE Win Rate', value: winRate, numerator: won.length, denominator: won.length + lost.length }, { key: 'onTimePct', label: 'Ops On-Time %', value: onTimePct, numerator: onTimeNumerator, denominator: completedAppts.length }, { key: 'callbackPct', label: 'Callback %', value: callbackPct, numerator: callbacks.length, denominator: wos.length }, { key: 'scanCompliancePct', label: 'Scan Compliance %', value: scanCompliancePct, numerator: scannedTotal, denominator: expectedTotal }, { key: 'startPacketSlaPct', label: 'Start Packet SLA %', value: startPacketSlaPct, numerator: packetGood, denominator: packetDenom } ], drilldowns: { winRate: { rows: opps }, onTimePct: { rows: completedAppts.map(a => ({ ApptID: a.ApptID, ScheduledStart: a.ScheduledStart, ActualStart: a.ActualStart, MinutesLate: minutesLate(a) })) }, callbackPct: { rows: wos }, scanCompliancePct: { rows: scans }, startPacketSlaPct: { rows: packets } }, users: { AE: aeUsers, Ops: opsUsers, Tech: techUsers } }; }
-      async function loadBranchManagerKpisUI() { const env = await loadEnvConfig(); const thresholdsMap = await loadThresholds(); const branch = document.getElementById('bm-branch')?.value || 'HOU'; const from = document.getElementById('bm-from')?.value || new Date().toISOString().slice(0,10); const to = document.getElementById('bm-to')?.value || new Date().toISOString().slice(0,10); const onlyRed = document.getElementById('bm-only-red')?.checked || false; const params = { branch, from, to, onlyRed }; let payload; const t0 = performance.now(); try { if (hasAppsScript() && env.mode === 'prod') { payload = await new Promise((resolve, reject) => { google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getBranchManagerKpi(params); }); } else { const provider = new JsonFixturesProvider(); payload = await aggregateBranchManagerKpi(provider, params); } } catch (e) { console.warn('KPI load failed, falling back to fixtures', e); const provider = new JsonFixturesProvider(); payload = await aggregateBranchManagerKpi(provider, params); payload.source = 'demo_fallback'; } const t1 = performance.now(); console.log(`BM KPI aggregation time: ${(t1 - t0).toFixed(1)}ms`, { source: payload.source }); const summaryEl = document.getElementById('bm-summary'); if (summaryEl) summaryEl.innerHTML = ''; (payload.summary || []).forEach(item => { const thresholdsKey = item.key; const color = badgeColor(item.value, thresholdsMap[thresholdsKey], thresholdsKey !== 'callbackPct'); if (onlyRed && color !== 'red') return; const badge = document.createElement('div'); badge.className = `px-2 py-1 rounded text-white text-sm`; badge.style.background = color === 'green' ? '#164' : color === 'yellow' ? '#664' : '#641'; const pctFmt = (item.value * 100).toFixed(0) + '%'; badge.innerHTML = `<strong>${item.label}</strong>: ${pctFmt}`; badge.title = `${item.label}: ${item.numerator} / ${item.denominator} (${params.from} → ${params.to})`; badge.style.cursor = 'pointer'; badge.addEventListener('click', () => openBmDrilldown(item.key, item.label, payload)); summaryEl?.appendChild(badge); }); const colsEl = document.getElementById('bm-columns'); if (colsEl) { colsEl.innerHTML = ''; const columns = [ { title: 'AEs', list: payload.users?.AE || [] }, { title: 'Ops Managers', list: payload.users?.Ops || [] }, { title: 'Technicians', list: payload.users?.Tech || [] } ]; columns.forEach(col => { const card = document.createElement('div'); card.className = 'border rounded-lg p-3 bg-white'; card.innerHTML = `<div class=\"font-semibold mb-2\">${col.title}</div><div class=\"space-y-1\">${col.list.map(u => `<div>${u.Name}</div>`).join('')}</div>`; colsEl.appendChild(card); }); } }
-      function openBmDrilldown(key, label, payload) { const modal = document.getElementById('bm-drilldown'); const title = document.getElementById('bm-drill-title'); const tooltip = document.getElementById('bm-tooltip'); const table = document.getElementById('bm-table'); const summaryItem = (payload.summary || []).find(s => s.key === key) || { numerator: 0, denominator: 0 }; if (title) title.textContent = label; if (tooltip) tooltip.textContent = `Numerator: ${summaryItem.numerator}, Denominator: ${summaryItem.denominator}`; const rows = payload.drilldowns?.[key]?.rows || []; if (table) table.innerHTML = renderTable(rows); modal?.classList.remove('hidden'); document.getElementById('bm-close')?.addEventListener('click', () => { modal?.classList.add('hidden'); }, { once: true }); document.getElementById('bm-download')?.addEventListener('click', () => downloadCsv(rows, `${key}.csv`), { once: true }); }
+      async function loadBranchManagerKpisUI() {
+        const sendLog = window.OneView?.logUserAction || window.logUserAction || (() => Promise.resolve(false));
+        const env = await loadEnvConfig();
+        const thresholdsMap = await loadThresholds();
+        const branch = document.getElementById('bm-branch')?.value || 'HOU';
+        const from = document.getElementById('bm-from')?.value || new Date().toISOString().slice(0, 10);
+        const to = document.getElementById('bm-to')?.value || new Date().toISOString().slice(0, 10);
+        const onlyRed = document.getElementById('bm-only-red')?.checked || false;
+        const params = { branch, from, to, onlyRed };
+        let payload;
+        const t0 = performance.now();
+
+        try {
+          sendLog('BranchKPI.load_requested', params);
+          if (hasAppsScript() && env.mode === 'prod') {
+            payload = await new Promise((resolve, reject) => {
+              google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getBranchManagerKpi(params);
+            });
+          } else {
+            const provider = new JsonFixturesProvider();
+            payload = await aggregateBranchManagerKpi(provider, params);
+            payload.source = payload.source || 'fixtures';
+          }
+        } catch (error) {
+          console.warn('KPI load failed, falling back to fixtures', error);
+          sendLog('BranchKPI.load_error', { message: error?.message || String(error), ...params }, { level: 'warn' });
+          const provider = new JsonFixturesProvider();
+          payload = await aggregateBranchManagerKpi(provider, params);
+          payload.source = 'demo_fallback';
+        }
+
+        const t1 = performance.now();
+        console.log(`BM KPI aggregation time: ${(t1 - t0).toFixed(1)}ms`, { source: payload.source });
+        sendLog('BranchKPI.load_success', {
+          ...params,
+          source: payload.source || (env.mode === 'prod' ? 'apps_script' : 'fixtures'),
+          durationMs: Number((t1 - t0).toFixed(1)),
+          summaryCount: (payload.summary || []).length,
+        });
+
+        const summaryEl = document.getElementById('bm-summary');
+        if (summaryEl) summaryEl.innerHTML = '';
+        (payload.summary || []).forEach((item) => {
+          const thresholdsKey = item.key;
+          const color = badgeColor(item.value, thresholdsMap[thresholdsKey], thresholdsKey !== 'callbackPct');
+          if (onlyRed && color !== 'red') return;
+          const badge = document.createElement('div');
+          badge.className = `px-2 py-1 rounded text-white text-sm`;
+          badge.style.background = color === 'green' ? '#164' : color === 'yellow' ? '#664' : '#641';
+          const pctFmt = (item.value * 100).toFixed(0) + '%';
+          badge.innerHTML = `<strong>${item.label}</strong>: ${pctFmt}`;
+          badge.title = `${item.label}: ${item.numerator} / ${item.denominator} (${params.from} → ${params.to})`;
+          badge.style.cursor = 'pointer';
+          badge.addEventListener('click', () => openBmDrilldown(item.key, item.label, payload));
+          summaryEl?.appendChild(badge);
+        });
+
+        const colsEl = document.getElementById('bm-columns');
+        if (colsEl) {
+          colsEl.innerHTML = '';
+          const columns = [
+            { title: 'AEs', list: payload.users?.AE || [] },
+            { title: 'Ops Managers', list: payload.users?.Ops || [] },
+            { title: 'Technicians', list: payload.users?.Tech || [] },
+          ];
+          columns.forEach((col) => {
+            const card = document.createElement('div');
+            card.className = 'border rounded-lg p-3 bg-white';
+            card.innerHTML = `<div class=\"font-semibold mb-2\">${col.title}</div><div class=\"space-y-1\">${col.list
+              .map((u) => `<div>${u.Name}</div>`)
+              .join('')}</div>`;
+            colsEl.appendChild(card);
+          });
+        }
+      }
+
+      function openBmDrilldown(key, label, payload) {
+        const sendLog = window.OneView?.logUserAction || window.logUserAction || (() => Promise.resolve(false));
+        const modal = document.getElementById('bm-drilldown');
+        const title = document.getElementById('bm-drill-title');
+        const tooltip = document.getElementById('bm-tooltip');
+        const table = document.getElementById('bm-table');
+        const summaryItem = (payload.summary || []).find((s) => s.key === key) || { numerator: 0, denominator: 0 };
+        if (title) title.textContent = label;
+        if (tooltip) tooltip.textContent = `Numerator: ${summaryItem.numerator}, Denominator: ${summaryItem.denominator}`;
+        const rows = payload.drilldowns?.[key]?.rows || [];
+        if (table) table.innerHTML = renderTable(rows);
+        modal?.classList.remove('hidden');
+        sendLog('BranchKPI.drilldown_open', { key, label, rows: rows.length });
+        document.getElementById('bm-close')?.addEventListener(
+          'click',
+          () => {
+            modal?.classList.add('hidden');
+            sendLog('BranchKPI.drilldown_close', { key });
+          },
+          { once: true },
+        );
+        document.getElementById('bm-download')?.addEventListener(
+          'click',
+          () => {
+            sendLog('BranchKPI.drilldown_download', { key, rows: rows.length });
+            downloadCsv(rows, `${key}.csv`);
+          },
+          { once: true },
+        );
+      }
       function renderTable(rows) { if (!rows || rows.length === 0) return '<em>No rows</em>'; const cols = Object.keys(rows[0]); const head = `<thead><tr>${cols.map(c => `<th class=\"text-left px-2 py-1\">${c}</th>`).join('')}</tr></thead>`; const body = `<tbody>${rows.map(r => `<tr>${cols.map(c => `<td class=\"px-2 py-1\">${escapeHtml(String(r[c] ?? ''))}</td>`).join('')}</tr>`).join('')}</tbody>`; return `${head}${body}`; }
       function escapeHtml(s) { const str = String(s ?? ''); return str.replace(/[&<>\"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\'':'&#39;' }[c])); }
       function downloadCsv(rows, filename) { if (!rows || rows.length === 0) return; const cols = Object.keys(rows[0]); const lines = [cols.join(',')].concat(rows.map(r => cols.map(c => JSON.stringify(r[c] ?? '')).join(','))); const blob = new Blob([lines.join('\n')], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }

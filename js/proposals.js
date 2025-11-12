@@ -2,10 +2,21 @@
 // Implements: showProposalForm, addServiceRow, removeServiceRow, nextStep, previousStep,
 // recalculateTotals (debounced), saveProposal, formatCurrency, selectAllMonths, clearAllMonths
 
-(function(){
+ (function(){
   const STATE_KEY = 'proposals.draft';
   let debounceTimer = null;
   let currentStep = 1;
+    const sendLog = (action, details, options) => {
+      try {
+        const logger = window.OneView?.logUserAction || window.logUserAction;
+        if (typeof logger === 'function') {
+          return logger(action, details, options);
+        }
+      } catch (error) {
+        console.warn('Proposal telemetry error', error);
+      }
+      return Promise.resolve(false);
+    };
 
   function formatCurrency(value){
     const n = Number(value || 0);
@@ -13,11 +24,18 @@
   }
 
   function getDraft(){ try { return (window.AppState?.getState(STATE_KEY) || {}); } catch(_) { return {}; } }
-  function saveDraft(draft){ try { window.AppState?.setState(STATE_KEY, draft); } catch(_) {} }
+    function saveDraft(draft){
+      try {
+        window.AppState?.setState(STATE_KEY, draft);
+      } catch(_){}
+    }
 
   function closeProposalForm(){
     const modal = document.getElementById('proposalFormModal');
-    if (modal) modal.remove();
+      if (modal) {
+        modal.remove();
+        sendLog('Proposal.modal_closed');
+      }
   }
 
   function ensureModal(){
@@ -127,6 +145,7 @@
     modal.querySelector('#pf-save')?.addEventListener('click', saveProposal);
     modal.querySelector('#pf-submit')?.addEventListener('click', saveProposal);
     modal.querySelector('#pf-add-service')?.addEventListener('click', addServiceRow);
+      sendLog('Proposal.modal_created', { version: '5.1' });
     return modal;
   }
 
@@ -141,6 +160,7 @@
       sec.classList.toggle('hidden', (i !== (step - 1)));
     });
     const ind = document.getElementById('pf-step-ind'); if (ind) ind.textContent = String(step);
+      sendLog('Proposal.step_change', { step });
   }
 
   function validateStep(step){
@@ -158,15 +178,22 @@
     return true;
   }
 
-  function previousStep(){ if (currentStep > 1) setActiveStep(currentStep - 1); }
-  function nextStep(){ if (!validateStep(currentStep)) return; if (currentStep < 4) setActiveStep(currentStep + 1); if (currentStep === 3) recalculateTotals(); if (currentStep === 4) renderReview(); }
+    function previousStep(){
+      if (currentStep > 1) setActiveStep(currentStep - 1);
+    }
+    function nextStep(){
+      if (!validateStep(currentStep)) return;
+      if (currentStep < 4) setActiveStep(currentStep + 1);
+      if (currentStep === 3) recalculateTotals();
+      if (currentStep === 4) renderReview();
+    }
 
   function monthsTemplate(){
     const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     return months.map(m => `<label class="inline-flex items-center gap-1 mr-2 mb-2"><input type="checkbox" class="pf-month" value="${m}"><span class="text-xs">${m}</span></label>`).join('');
   }
 
-  function addServiceRow(){
+    function addServiceRow(){
     const host = document.getElementById('pf-services');
     if (!host) return;
     const row = document.createElement('div');
@@ -198,11 +225,24 @@
     row.querySelector('[data-select-all]').addEventListener('click', () => selectAllMonths(row));
     row.querySelector('[data-clear-all]').addEventListener('click', () => clearAllMonths(row));
     row.querySelectorAll('input, select, textarea').forEach(el => el.addEventListener('input', () => recalculateTotals()));
+      sendLog('Proposal.service_added', { index: document.querySelectorAll('.pf-service-row').length });
   }
 
-  function removeServiceRow(row){ row.remove(); recalculateTotals(); }
-  function selectAllMonths(row){ row.querySelectorAll('.pf-month').forEach(cb => cb.checked = true); recalculateTotals(); }
-  function clearAllMonths(row){ row.querySelectorAll('.pf-month').forEach(cb => cb.checked = false); recalculateTotals(); }
+    function removeServiceRow(row){
+      row.remove();
+      recalculateTotals();
+      sendLog('Proposal.service_removed', { remaining: document.querySelectorAll('.pf-service-row').length });
+    }
+    function selectAllMonths(row){
+      row.querySelectorAll('.pf-month').forEach(cb => cb.checked = true);
+      recalculateTotals();
+      sendLog('Proposal.months_select_all');
+    }
+    function clearAllMonths(row){
+      row.querySelectorAll('.pf-month').forEach(cb => cb.checked = false);
+      recalculateTotals();
+      sendLog('Proposal.months_clear_all');
+    }
 
   function readServices(){
     const rows = Array.from(document.querySelectorAll('.pf-service-row'));
@@ -220,7 +260,7 @@
     });
   }
 
-  function recalculateTotals(){
+    function recalculateTotals(){
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       const services = readServices();
@@ -234,6 +274,12 @@
       const ti = document.getElementById('pf-total-initial'); if (ti) ti.textContent = formatCurrency(totals.totalInitial);
       const tm = document.getElementById('pf-total-monthly'); if (tm) tm.textContent = formatCurrency(totals.totalMonthly);
       const gt = document.getElementById('pf-grand-total'); if (gt) gt.textContent = formatCurrency(totals.grandTotal);
+        sendLog('Proposal.totals_recalculated', {
+          totalInitial: totals.totalInitial,
+          totalMonthly: totals.totalMonthly,
+          totalAnnual: totals.totalAnnual,
+          serviceCount: services.length,
+        });
     }, 300);
   }
 
@@ -284,10 +330,18 @@
     };
   }
 
-  function saveProposal(){
+    function saveProposal(evt){
+      evt?.preventDefault();
     const proposal = readForm();
     saveDraft(proposal);
-    alert('Proposal saved.');
+      const action = evt?.target?.id === 'pf-submit' ? 'Proposal.submit' : 'Proposal.save_draft';
+      sendLog(action, {
+        customer: proposal.customerName,
+        services: proposal.services.length,
+        totalInitial: proposal.totals.totalInitial,
+        totalMonthly: proposal.totals.totalMonthly,
+      });
+      alert(evt?.target?.id === 'pf-submit' ? 'Proposal submitted (draft workflow).' : 'Proposal saved.');
   }
 
   function restoreDraft(){
@@ -322,6 +376,7 @@
       r.querySelectorAll('.pf-month').forEach(cb => { cb.checked = months.includes(cb.value); });
     });
     recalculateTotals();
+      sendLog('Proposal.draft_restored', { services: (d.services || []).length, customer: d.customerName || null });
   }
 
   function setSmartDefaults(){
@@ -335,13 +390,16 @@
     }
   }
 
-  window.showProposalForm = function(){
+    window.showProposalForm = function(){
     const modal = ensureModal();
     setActiveStep(1);
     setSmartDefaults();
-    restoreDraft();
+      const draft = getDraft();
+      const hasDraft = draft && Object.keys(draft).length > 0;
+      restoreDraft();
     // Allow drag/resize behavior to be applied if available
     try { window.makeModalDraggableAndResizable('proposalFormModal'); window.addDynamicGlowEffect('proposalFormModal'); } catch(_){}
+      sendLog('Proposal.modal_opened', { hasDraft });
   };
 
   // Expose helpers
