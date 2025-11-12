@@ -1,0 +1,7 @@
+{
+  "winRate": { "green": 0.6, "yellow": 0.4 },
+  "onTimePct": { "green": 0.9, "yellow": 0.8 },
+  "callbackPct": { "green": 0.05, "yellow": 0.1 },
+  "scanCompliancePct": { "green": 0.95, "yellow": 0.85 },
+  "startPacketSlaPct": { "green": 0.9, "yellow": 0.8 }
+}
