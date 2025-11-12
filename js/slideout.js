@@ -1,10 +1,15 @@
-;(function(){
+;(function initSlideOut(global) {
+  const root = global.OneView = global.OneView || {};
+  const log = root.logUserAction || (() => Promise.resolve(false));
+  const events = root.events || global.EventRegistry || null;
+
   const STYLE_ID = 'slideout-styles';
-  function injectStyles(){
+
+  function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
-    const s = document.createElement('style');
-    s.id = STYLE_ID;
-    s.textContent = `
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
       .slideout-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); opacity: 0; pointer-events: none; transition: opacity 180ms ease; z-index: 10000; }
       .slideout-overlay.active { opacity: 1; pointer-events: auto; }
       .slideout-panel { position: fixed; top: 0; right: 0; height: 100vh; width: min(480px, 100vw); max-width: 100vw; background: #111827; color: #fff; box-shadow: -8px 0 24px rgba(0,0,0,0.4); transform: translateX(100%); transition: transform 220ms ease; z-index: 10001; display: grid; grid-template-rows: auto 1fr auto; }
@@ -18,13 +23,18 @@
       .slideout-footer { padding: 10px 16px; border-top: 1px solid #374151; background: #0f172a; }
       @media (max-width: 640px) { .slideout-panel { width: 100vw; } }
     `;
-    document.head.appendChild(s);
+    document.head.appendChild(style);
   }
 
+  /**
+   * Slide-out presenter singleton.
+   */
   class SlideOut {
-    constructor(){
+    constructor() {
       injectStyles();
-      this.scope = (window.EventRegistry && EventRegistry.createScope('SlideOutPanel')) || null;
+      this.baseScope = events ? events.createScope('SlideOutBase') : null;
+      this.runtimeScope = null;
+
       this.overlay = document.createElement('div');
       this.overlay.className = 'slideout-overlay';
       this.panel = document.createElement('div');
@@ -54,22 +64,55 @@
       document.body.appendChild(this.overlay);
       document.body.appendChild(this.panel);
 
-      this.boundEsc = (e) => { if (e.key === 'Escape') this.close(); };
+      this.boundEsc = (event) => {
+        if (event.key === 'Escape') this.close();
+      };
       this.boundOverlay = () => this.close();
-      const onCloseClick = () => this.close();
-      if (this.scope) this.scope.addEvent(this.closeBtn, 'click', onCloseClick); else this.closeBtn.addEventListener('click', onCloseClick);
-      if (this.scope) this.scope.addEvent(this.overlay, 'click', this.boundOverlay); else this.overlay.addEventListener('click', this.boundOverlay);
+
+      if (this.baseScope) {
+        this.baseScope.addEvent(this.closeBtn, 'click', () => this.close());
+        this.baseScope.addEvent(this.overlay, 'click', this.boundOverlay);
+      } else {
+        this.closeBtn.addEventListener('click', () => this.close());
+        this.overlay.addEventListener('click', this.boundOverlay);
+      }
     }
 
-    setTitle(text){ this.titleEl.textContent = text || ''; }
-    setFooter(node){ this.footer.innerHTML = ''; if (node) this.footer.appendChild(node); }
-    setContent(nodeOrHtml){
+    /**
+     * Updates title region.
+     * @param {string} text
+     */
+    setTitle(text) {
+      this.titleEl.textContent = text || '';
+    }
+
+    /**
+     * Replace footer node.
+     * @param {Node|null} node
+     */
+    setFooter(node) {
+      this.footer.innerHTML = '';
+      if (node) this.footer.appendChild(node);
+    }
+
+    /**
+     * Replace main content.
+     * @param {Node|string} nodeOrHtml
+     */
+    setContent(nodeOrHtml) {
       this.content.innerHTML = '';
-      if (typeof nodeOrHtml === 'string') { this.content.innerHTML = nodeOrHtml; }
-      else if (nodeOrHtml instanceof Node) { this.content.appendChild(nodeOrHtml); }
+      if (typeof nodeOrHtml === 'string') {
+        this.content.innerHTML = nodeOrHtml;
+      } else if (nodeOrHtml instanceof Node) {
+        this.content.appendChild(nodeOrHtml);
+      }
     }
 
-    setPosition(pos){
+    /**
+     * Update drawer position.
+     * @param {'left'|'right'} pos
+     */
+    setPosition(pos) {
       if (pos === 'left') {
         this.panel.classList.add('left');
       } else {
@@ -77,43 +120,85 @@
       }
     }
 
-    openFromElement(elOrId, opts={}){
-      const el = (typeof elOrId === 'string') ? document.getElementById(elOrId) : elOrId;
-      if (!el) return this.open('<p>Panel not available.</p>', opts);
-      // Move the actual element into the slide-out and remember where it came from
+    /**
+     * Mounts an existing DOM node into the panel.
+     * @param {Element|string} elOrId
+     * @param {{title?: string, position?: 'left'|'right'}} [opts]
+     */
+    openFromElement(elOrId, opts = {}) {
+      const el = typeof elOrId === 'string' ? document.getElementById(elOrId) : elOrId;
+      if (!el) {
+        log('SlideOut.open_missing_element', { id: elOrId }, { level: 'warn' });
+        this.open('<p>Panel not available.</p>', opts);
+        return;
+      }
       this.srcEl = el;
       this.srcElParent = el.parentNode;
       this.srcElNext = el.nextSibling;
       this.movedEl = true;
       this.open('', opts);
-      try { this.content.appendChild(el); } catch(_) {}
-      try { el.classList.remove('hidden'); el.style.display = ''; } catch(_) {}
+      try {
+        this.content.appendChild(el);
+        el.classList.remove('hidden');
+        el.style.display = '';
+      } catch (error) {
+        log('SlideOut.mount_error', { error }, { level: 'warn' });
+      }
     }
 
-    open(content, opts={}){
+    /**
+     * Open panel with provided content.
+     * @param {Node|string} content
+     * @param {{title?: string, position?: 'left'|'right'}} [opts]
+     */
+    open(content, opts = {}) {
       const { title, position } = opts;
       this.setTitle(title || '');
       this.setPosition(position || 'right');
       this.setContent(content);
+
+      if (this.runtimeScope) {
+        this.runtimeScope.cleanup();
+      }
+      this.runtimeScope = events ? events.createScope('SlideOutRuntime') : null;
+
       this.overlay.classList.add('active');
       this.panel.classList.add('active');
-      if (this.scope) this.scope.addEvent(document, 'keydown', this.boundEsc); else document.addEventListener('keydown', this.boundEsc);
-      try { document.body.style.overflow = 'hidden'; } catch(_) {}
-      // Focus trap: focus first focusable element, else close button
-      setTimeout(() => {
-        const focusables = this.panel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-        const first = focusables[0] || this.closeBtn;
-        try { first.focus(); } catch(_) {}
-      }, 0);
-      if (window.AppState && typeof AppState.setState === 'function') {
-        AppState.setState('ui.activeSlideout', true);
+
+      if (this.runtimeScope) {
+        this.runtimeScope.addEvent(document, 'keydown', this.boundEsc);
+      } else {
+        document.addEventListener('keydown', this.boundEsc);
       }
+
+      try {
+        document.body.style.overflow = 'hidden';
+      } catch (_) {}
+
+      setTimeout(() => {
+        const focusables = this.panel.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusables[0] || this.closeBtn;
+        try {
+          first.focus();
+        } catch (_) {}
+      }, 0);
+
+      if (global.AppState && typeof global.AppState.setState === 'function') {
+        global.AppState.setState('ui.activeSlideout', true);
+      }
+
+      log('SlideOut.open', { title: title || '', position: position || 'right' });
     }
 
-    close(){
+    /**
+     * Close panel and restore previous DOM location.
+     */
+    close() {
       this.overlay.classList.remove('active');
       this.panel.classList.remove('active');
-      // Restore moved element if we moved one in
+
       if (this.movedEl && this.srcEl && this.srcElParent) {
         try {
           if (this.srcElNext && this.srcElNext.parentNode === this.srcElParent) {
@@ -123,21 +208,39 @@
           }
           this.srcEl.classList.remove('hidden');
           this.srcEl.style.display = '';
-        } catch(_) {}
+        } catch (error) {
+          log('SlideOut.restore_error', { error }, { level: 'warn' });
+        }
       }
+
       this.srcEl = null;
       this.srcElParent = null;
       this.srcElNext = null;
       this.movedEl = false;
       this.content.innerHTML = '';
-      if (this.scope) this.scope.cleanup(); else document.removeEventListener('keydown', this.boundEsc);
-      try { document.body.style.overflow = ''; } catch(_) {}
-      if (window.AppState && typeof AppState.setState === 'function') {
-        AppState.setState('ui.activeSlideout', null);
+
+      if (this.runtimeScope) {
+        this.runtimeScope.cleanup();
+        this.runtimeScope = null;
+      } else {
+        document.removeEventListener('keydown', this.boundEsc);
       }
+
+      try {
+        document.body.style.overflow = '';
+      } catch (_) {}
+
+      if (global.AppState && typeof global.AppState.setState === 'function') {
+        global.AppState.setState('ui.activeSlideout', null);
+      }
+
+      log('SlideOut.close');
     }
   }
 
-  // Singleton export
-  window.SlideOutPanel = new SlideOut();
-})();
+  const slideOut = new SlideOut();
+
+  root.UI = root.UI || {};
+  root.UI.slideOut = slideOut;
+  global.SlideOutPanel = slideOut;
+})(window);
