@@ -1,0 +1,4 @@
+[
+  { "ApptID": "p1", "Tech_UserID": "tech1", "Ops_UserID": "ops1", "ServiceType": "Monthly", "AccountID": "acct1", "ScheduledStart": "2025-10-08T09:00:00Z", "ActualStart": "2025-10-08T09:10:00Z", "ActualEnd": "2025-10-08T10:00:00Z", "Status": "Completed", "MilesDriven": 12 },
+  { "ApptID": "p2", "Tech_UserID": "tech1", "Ops_UserID": "ops1", "ServiceType": "Install", "AccountID": "acct2", "ScheduledStart": "2025-10-20T11:00:00Z", "ActualStart": "2025-10-20T11:25:00Z", "ActualEnd": "2025-10-20T12:00:00Z", "Status": "Completed", "MilesDriven": 8 }
+]

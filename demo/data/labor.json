@@ -1,0 +1,4 @@
+[
+  { "ApptID": "p1", "BillableHours": 0.75, "DriveHours": 0.25, "LaborCost": 85.0 },
+  { "ApptID": "p2", "BillableHours": 0.5, "DriveHours": 0.2, "LaborCost": 60.0 }
+]

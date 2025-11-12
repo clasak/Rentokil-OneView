@@ -1,0 +1,5 @@
+[
+  { "OppID": "o1", "AE_UserID": "ae1", "Stage": "Closed Won", "Amount_MRC": 1200, "Amount_Initial": 3000, "CreatedAt": "2025-10-01T12:00:00Z", "ProposalSentAt": "2025-10-03T12:00:00Z", "ClosedWonAt": "2025-10-10T12:00:00Z", "ClosedLostAt": null },
+  { "OppID": "o2", "AE_UserID": "ae1", "Stage": "Closed Lost", "Amount_MRC": 800, "Amount_Initial": 1500, "CreatedAt": "2025-10-05T12:00:00Z", "ProposalSentAt": "2025-10-06T12:00:00Z", "ClosedWonAt": null, "ClosedLostAt": "2025-10-15T12:00:00Z" },
+  { "OppID": "o3", "AE_UserID": "ae1", "Stage": "Proposal", "Amount_MRC": 900, "Amount_Initial": 2000, "CreatedAt": "2025-10-12T12:00:00Z", "ProposalSentAt": "2025-10-13T12:00:00Z", "ClosedWonAt": null, "ClosedLostAt": null }
+]

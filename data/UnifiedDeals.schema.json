@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UnifiedDeals",
+  "description": "Single source of truth for all deal data across legacy sheets",
+  "type": "object",
+  "properties": {
+    "DealId": { "type": "string" },
+    "Customer": { "type": "string" },
+    "AE": { "type": "string" },
+    "Branch": { "type": "string" },
+    "Vertical": { "type": "string" },
+    "LeadSource": { "type": "string" },
+    "Stage": { "type": "string", "enum": ["Lead","Proposal","Won","Lost","QueuedOps"] },
+    "InitialFee": { "type": "number" },
+    "MonthlyFee": { "type": "number" },
+    "FrequencyPY": { "type": "number", "description": "Planned service frequency per year" },
+    "AnnualValue": { "type": "number" },
+    "CreatedAt": { "type": "string", "format": "date-time" },
+    "ClosedAt": { "type": "string", "format": "date-time" },
+    "LostReason": { "type": "string" },
+    "Notes": { "type": "string" },
+    "Tags": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["DealId","Customer","AE","Branch","Stage","AnnualValue","CreatedAt"],
+  "additionalProperties": true
+}

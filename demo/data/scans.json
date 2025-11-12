@@ -1,0 +1,4 @@
+[
+  { "ScanID": "s1", "Tech_UserID": "tech1", "AccountID": "acct1", "DeviceType": "RBS", "ExpectedCount": 10, "ScannedCount": 9, "ServiceDate": "2025-10-08" },
+  { "ScanID": "s2", "Tech_UserID": "tech1", "AccountID": "acct2", "DeviceType": "RBS", "ExpectedCount": 15, "ScannedCount": 15, "ServiceDate": "2025-10-20" }
+]

@@ -1,0 +1,4 @@
+[
+  { "WOID": "w1", "Tech_UserID": "tech1", "AccountID": "acct1", "OriginalServiceDate": "2025-10-08", "CallbackDate": null, "Reason": null, "IsCallback": false },
+  { "WOID": "w2", "Tech_UserID": "tech1", "AccountID": "acct2", "OriginalServiceDate": "2025-10-20", "CallbackDate": "2025-10-28", "Reason": "Issue", "IsCallback": true }
+]

@@ -1,0 +1,4 @@
+[
+  { "ActID": "a1", "AE_UserID": "ae1", "Type": "visit", "AccountID": "acct1", "HappenedAt": "2025-10-02T14:00:00Z" },
+  { "ActID": "a2", "AE_UserID": "ae1", "Type": "email", "AccountID": "acct2", "HappenedAt": "2025-10-04T14:00:00Z" }
+]
