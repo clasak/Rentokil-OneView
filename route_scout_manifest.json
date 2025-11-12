@@ -1,0 +1,21 @@
+{
+  "name": "Route & Prospect Scout",
+  "short_name": "Route Scout",
+  "start_url": "/route_scout.html",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#0b5fff",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rentokil OneView - Test Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-brand { background-color: var(--brand-color); }
+.text-brand { color: var(--brand-color); }
+.border-brand { border-color: var(--brand-color); }
+.bg-green-600 { background-color: #059669; }
+.text-green-600 { color: #059669; }
+        .bg-rentokil-blue { background-color: #005AA7; }
+        .text-rentokil-blue { color: #005AA7; }
+        /* Match app: unify white text and borders to grey */
+        .text-white { color: #6b7280 !important; }
+        .hover\:text-white:hover { color: #6b7280 !important; }
+        .border-white { border-color: #6b7280 !important; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+<h1 class="text-2xl font-bold text-center mb-6">Rentokil OneView</h1>
+            <p class="text-gray-600 text-center mb-6">Test Mode - No Backend Required</p>
+            
+            <div class="space-y-4">
+                <button onclick="simulateLogin('sales@prestox.com')" class="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    Login as Presto-X Sales
+                </button>
+                <button onclick="simulateLogin('ops@terminix.com')" class="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    Login as Terminix Operations
+                </button>
+                <button onclick="simulateLogin('manager@rentokil.com')" class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Login as Rentokil Manager
+                </button>
+                <button onclick="simulateLogin('user@company.com')" class="w-full px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                    Login as Generic User
+                </button>
+            </div>
+            
+            <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm text-yellow-800">
+                    <strong>Note:</strong> This test mode simulates different user logins to test the dynamic branding feature. 
+                    Click any button to see how the system would look for different companies.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function simulateLogin(email) {
+            // Store the simulated user data
+            const users = {
+                'sales@prestox.com': { name: 'John Smith', role: 'Sales', email: 'sales@prestox.com' },
+                'ops@terminix.com': { name: 'Jane Doe', role: 'Operations', email: 'ops@terminix.com' },
+                'manager@rentokil.com': { name: 'Mike Johnson', role: 'Branch Manager', email: 'manager@rentokil.com' },
+                'user@company.com': { name: 'Demo User', role: 'Sales', email: 'user@company.com' }
+            };
+            
+            const user = users[email];
+            
+            // Redirect to main app with simulated data
+            localStorage.setItem('testUser', JSON.stringify(user));
+            localStorage.setItem('testMode', 'true');
+            
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
