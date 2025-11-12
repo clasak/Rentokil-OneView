@@ -6035,6 +6035,18 @@
                 
                 <div class="dashboard-layout grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden" data-col-span="2">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Route Scout</h3>
+                                <p class="text-sm text-gray-500">Appointments, nearby prospects, and optimized routes</p>
+                            </div>
+                            <button class="px-3 py-2 text-sm bg-brand text-white rounded hover:bg-brand-color-light transition"
+                                onclick="window.open('route_scout.html', '_blank', 'noopener')">Open Full App ↗</button>
+                        </div>
+                        <div id="sales-route-scout-root" class="bg-gray-900/5" style="min-height:420px;"></div>
+                    </div>
+                    
                     
                     <div class="bg-white p-6 rounded-lg shadow-lg">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
@@ -6167,6 +6179,16 @@
                 if (styleEl) styleEl.remove();
                 document.getElementById('dashboardContent')?.classList.remove('layout-mode');
             } catch (_) {}
+            // Mount Route Scout embedded experience within Sales dashboard
+            try {
+                const root = document.getElementById('sales-route-scout-root');
+                if (root && window.RouteScout && typeof window.RouteScout.mount === 'function') {
+                    root.innerHTML = '';
+                    window.RouteScout.mount(root, { currentUser: window.currentUser || null });
+                }
+            } catch (e) {
+                console.warn('RouteScout mount failed', e);
+            }
             // Initialize universal grid for Sales
             try { if (window.universalGridEnabled === true) initUniversalGrid('sales'); } catch(_) {}
             // Cache data for modal rendering and attach interactivity
