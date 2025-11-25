@@ -11,9 +11,9 @@
     <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Universal grid layout engine and widgets registry -->
-  <script src="widgets.js"></script>
+  <script src="widgets-enhanced.js"></script>
   <script src="layoutEngine.js"></script>
-  <script src="dashboardConfigs.js"></script>
+  <script src="dashboardConfigs-enhanced.js"></script>
   <script src="roleDefaults.js"></script>
   <script src="src/data/transformers/unifyDeals.js?v=2"></script>
     <!-- SheetJS will be loaded on-demand to avoid ORB blocking -->
@@ -15171,6 +15171,13 @@ function composeOnboardingEmail() {
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
   <script src="js/proposals.js"></script>
+
+  <!-- Enhanced Dashboard System -->
+  <script src="js/data-validation.js"></script>
+  <script src="js/cache-layer.js"></script>
+  <script src="js/unified-quote-entry.js"></script>
+  <script src="js/dashboard-init.js"></script>
+
   <script>
     // Phase 5.1: Override legacy sales entry to use new Proposal Form
     window.openSalesEntryForm = function(){
