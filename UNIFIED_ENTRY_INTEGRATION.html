@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<!--
+  ===============================================================================
+  UNIFIED DAILY ENTRY INTEGRATION GUIDE
+  ===============================================================================
+
+  This file shows how to integrate the Unified Daily Entry system into your
+  existing Rentokil OneView dashboard.
+
+  Follow these steps to get it working:
+-->
+
+<!--
+  ===============================================================================
+  STEP 1: Add Scripts to index.html (in <head> or before </body>)
+  ===============================================================================
+-->
+
+<!-- Load unified daily entry system (after other dashboard scripts) -->
+<script src="js/unified-daily-entry.js"></script>
+
+<!--
+  Order matters! Load these BEFORE unified-daily-entry.js:
+  - js/cache-layer.js (for auto-save)
+  - js/data-validation.js (for validation/toasts)
+  - js/data-sync.js (for Operations notifications)
+-->
+
+<!--
+  ===============================================================================
+  STEP 2: Add Button to Open Unified Daily Entry
+  ===============================================================================
+-->
+
+<!-- Option A: Add to main navigation bar -->
+<nav class="main-nav">
+  <button onclick="window.openUnifiedDailyEntry()"
+          class="btn btn-primary">
+    📝 Daily Entry
+  </button>
+</nav>
+
+<!-- Option B: Add to sales dashboard header -->
+<div class="dashboard-header">
+  <h1>Sales Dashboard</h1>
+  <button onclick="window.openUnifiedDailyEntry()"
+          class="btn btn-success btn-lg">
+    <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"/>
+    </svg>
+    Daily Entry
+  </button>
+</div>
+
+<!-- Option C: Floating Action Button (FAB) -->
+<button onclick="window.openUnifiedDailyEntry()"
+        class="floating-action-button"
+        style="position: fixed; bottom: 24px; right: 24px;
+               width: 64px; height: 64px; border-radius: 50%;
+               background: linear-gradient(135deg, #0066cc 0%, #004999 100%);
+               color: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+               cursor: pointer; z-index: 1000; font-size: 24px;
+               transition: transform 0.2s, box-shadow 0.2s;"
+        onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 6px 16px rgba(0,0,0,0.4)';"
+        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)';"
+        title="Open Daily Entry">
+  📝
+</button>
+
+<!--
+  ===============================================================================
+  STEP 3: Add Button to Widget Menu (Optional)
+  ===============================================================================
+-->
+
+<div class="widget-menu">
+  <button onclick="window.openUnifiedDailyEntry()" class="menu-item">
+    <div class="menu-icon">📝</div>
+    <div class="menu-label">Daily Entry</div>
+    <div class="menu-description">Enter today's sales & proposals</div>
+  </button>
+</div>
+
+<!--
+  ===============================================================================
+  STEP 4: Deploy Backend to Google Apps Script
+  ===============================================================================
+
+  1. Open your Google Sheets file
+  2. Extensions → Apps Script
+  3. Create new file: "UnifiedEntryBackend.gs"
+  4. Copy contents from unified-entry-backend.gs
+  5. Save and deploy
+
+  Functions to copy:
+  - submitUnifiedDailyEntry(data)
+  - getTodaysEntries(aeEmail)
+
+  ===============================================================================
+  STEP 5: Create/Verify Google Sheets Structure
+  ===============================================================================
+
+  Ensure these sheets exist with correct column headers:
+
+  1. Daily_Performance (or DailyPerformance)
+     Headers: Date | AE Name | Proposals Delivered | PRP LOBs Proposed |
+              PRP LOBs Sold | Total Dollars Sold | Next Day CONF |
+              Total Dollars Proposed | Events Completed | Timestamp
+
+  2. Sales_Tracker (or SalesTracker)
+     Headers: Sold Date | Account Name | Service Address | Sales Rep |
+              Lead Type | Service Type | Initial Job $ | Maintenance Contract $ |
+              Total $ | Type | Timestamp
+
+  3. Proposals_Tracker (or ProposalsTracker)
+     Headers: Date Delivered | Company Name | Lead Type | Service |
+              Job Work Total | Termite Total | Contract Total | Grand Total |
+              Sold | Delivered | AE | Timestamp
+
+  4. Houston_New_Start_Log (or NewStartLog)
+     Headers: Sold Date | Account Name | Service Address | Initial/Job $ |
+              Initial/Job YR | Maintenance $ | Type | Premium | LOBs |
+              Confirmed Package | UAC Expires | Confirmed with POC |
+              Ops Manager | Assigned Specialist | Have Been Ordered |
+              Service Ordered | Customer Confirmed Month | [R] | POC Info |
+              Special Notes | Sales Rep | Timestamp
+
+  ===============================================================================
+  STEP 6: Test the Integration
+  ===============================================================================
+-->
+
+<script>
+  // Test script - add to your dashboard initialization
+  document.addEventListener('DOMContentLoaded', function() {
+
+    // Verify unified daily entry is loaded
+    if (window.unifiedDailyEntry) {
+      console.log('✅ Unified Daily Entry loaded successfully');
+    } else {
+      console.error('❌ Unified Daily Entry not loaded - check script order');
+    }
+
+    // Verify dependencies
+    const dependencies = {
+      'CacheLayer': window.CacheLayer,
+      'DataValidation': window.DataValidation,
+      'DataSync': window.DataSync
+    };
+
+    Object.entries(dependencies).forEach(([name, obj]) => {
+      if (obj) {
+        console.log(`✅ ${name} loaded`);
+      } else {
+        console.warn(`⚠️ ${name} not loaded (optional but recommended)`);
+      }
+    });
+
+    // Test opening the modal
+    console.log('Test: Click the Daily Entry button to verify it opens');
+  });
+
+  // Manual test function
+  function testUnifiedDailyEntry() {
+    console.log('[Test] Opening Unified Daily Entry...');
+    window.openUnifiedDailyEntry();
+  }
+</script>
+
+<!--
+  ===============================================================================
+  STEP 7: Styling (Optional - customize to match your brand)
+  ===============================================================================
+-->
+
+<style>
+  /* Customize button styles to match your brand */
+  .btn-daily-entry {
+    background: linear-gradient(135deg, #0066cc 0%, #004999 100%);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .btn-daily-entry:hover {
+    background: linear-gradient(135deg, #0052a3 0%, #003d7a 100%);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-daily-entry:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 102, 204, 0.3);
+  }
+
+  /* Floating Action Button styles */
+  .floating-action-button {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    }
+    50% {
+      box-shadow: 0 4px 20px rgba(0, 102, 204, 0.6);
+    }
+  }
+</style>
+
+<!--
+  ===============================================================================
+  COMPLETE EXAMPLE: Full Integration
+  ===============================================================================
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rentokil OneView Dashboard</title>
+
+  <!-- Your existing stylesheets -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Load dependencies first -->
+  <script src="js/cache-layer.js"></script>
+  <script src="js/data-validation.js"></script>
+  <script src="js/data-sync.js"></script>
+
+  <!-- Load unified daily entry system -->
+  <script src="js/unified-daily-entry.js"></script>
+</head>
+<body>
+
+  <!-- Dashboard Header -->
+  <header class="dashboard-header">
+    <div class="logo">Rentokil OneView</div>
+
+    <nav class="main-nav">
+      <a href="#dashboard">Dashboard</a>
+      <a href="#reports">Reports</a>
+
+      <!-- Daily Entry Button -->
+      <button onclick="window.openUnifiedDailyEntry()" class="btn-daily-entry">
+        📝 Daily Entry
+      </button>
+    </nav>
+
+    <div class="user-menu">
+      <span id="userName">Loading...</span>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Content -->
+  <main class="dashboard-content">
+    <!-- Your existing dashboard widgets -->
+    <div id="widgetGrid"></div>
+  </main>
+
+  <!-- Floating Action Button (Alternative) -->
+  <button onclick="window.openUnifiedDailyEntry()"
+          class="floating-action-button"
+          title="Daily Entry">
+    📝
+  </button>
+
+  <!-- Initialize Dashboard -->
+  <script>
+    // Your existing dashboard initialization
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load user data
+      loadUserData();
+
+      // Initialize widgets
+      initializeWidgets();
+
+      // Verify unified daily entry loaded
+      if (window.unifiedDailyEntry) {
+        console.log('✅ Unified Daily Entry ready');
+
+        // Optional: Auto-open on first visit of the day
+        const lastEntry = localStorage.getItem('last_daily_entry_date');
+        const today = new Date().toISOString().split('T')[0];
+
+        if (lastEntry !== today) {
+          // Show reminder notification
+          showNotification('reminder', 'Don\'t forget to complete your daily entry!');
+        }
+      }
+    });
+
+    // Helper to show notifications
+    function showNotification(type, message) {
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.textContent = message;
+
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = '✕';
+      closeBtn.onclick = () => notification.remove();
+      notification.appendChild(closeBtn);
+
+      const openBtn = document.createElement('button');
+      openBtn.textContent = 'Open Daily Entry';
+      openBtn.onclick = () => {
+        window.openUnifiedDailyEntry();
+        notification.remove();
+      };
+      notification.appendChild(openBtn);
+
+      document.body.appendChild(notification);
+
+      // Auto-dismiss after 10 seconds
+      setTimeout(() => notification.remove(), 10000);
+    }
+  </script>
+
+</body>
+</html>
+
+<!--
+  ===============================================================================
+  KEYBOARD SHORTCUTS (Optional Enhancement)
+  ===============================================================================
+-->
+
+<script>
+  // Add keyboard shortcut: Ctrl+D or Cmd+D to open Daily Entry
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+      e.preventDefault();
+      window.openUnifiedDailyEntry();
+    }
+  });
+
+  console.log('💡 Pro Tip: Press Ctrl+D (or Cmd+D) to open Daily Entry');
+</script>
+
+<!--
+  ===============================================================================
+  AUTO-REMINDER SYSTEM (Optional Enhancement)
+  ===============================================================================
+-->
+
+<script>
+  // Show reminder at end of business day (5:30 PM) if not completed
+  function setupDailyEntryReminder() {
+    const now = new Date();
+    const reminderTime = new Date();
+    reminderTime.setHours(17, 30, 0, 0); // 5:30 PM
+
+    if (now < reminderTime) {
+      const timeUntilReminder = reminderTime - now;
+
+      setTimeout(() => {
+        // Check if entry completed today
+        const lastEntry = localStorage.getItem('last_daily_entry_date');
+        const today = new Date().toISOString().split('T')[0];
+
+        if (lastEntry !== today) {
+          showNotification('reminder',
+            '⏰ End of day reminder: Please complete your Daily Entry!');
+        }
+      }, timeUntilReminder);
+    }
+  }
+
+  // Call on page load
+  document.addEventListener('DOMContentLoaded', setupDailyEntryReminder);
+</script>
+
+<!--
+  ===============================================================================
+  TESTING CHECKLIST
+  ===============================================================================
+
+  After integration, test these scenarios:
+
+  ✅ Basic Functionality:
+     [ ] Button appears in header/nav
+     [ ] Clicking button opens modal
+     [ ] Modal shows all 4 tabs
+     [ ] Can switch between tabs
+     [ ] Close button works
+
+  ✅ Quick Entry Tab:
+     [ ] All fields render correctly
+     [ ] Can enter numbers in all fields
+     [ ] Auto-calculated hints show
+     [ ] Quick action buttons work
+
+  ✅ New Sale Tab:
+     [ ] All fields render correctly
+     [ ] Date defaults to today
+     [ ] Sales rep auto-fills
+     [ ] Operations section is disabled
+     [ ] Can fill form completely
+     [ ] "Clear Form" works
+     [ ] "Save & Add Another" works
+     [ ] "Save & Submit to Ops" works
+
+  ✅ Proposal Tab:
+     [ ] All fields render correctly
+     [ ] Grand total auto-calculates
+     [ ] Checkboxes work
+     [ ] "Clear Form" works
+     [ ] "Save & Add Another" works
+     [ ] "Save Proposal" works
+
+  ✅ Daily Summary Tab:
+     [ ] Metrics cards show correct values
+     [ ] Sales entries list renders
+     [ ] Proposal entries list renders
+     [ ] Remove entry (✕) button works
+     [ ] "Submit All & Sync" button works
+
+  ✅ Auto-Save:
+     [ ] Enter data in any tab
+     [ ] Close modal
+     [ ] Reopen modal
+     [ ] Data still there
+     [ ] Status shows "Auto-saved"
+
+  ✅ Backend Sync:
+     [ ] Click "Submit All & Sync"
+     [ ] Check Daily_Performance sheet → row added
+     [ ] Check Sales_Tracker sheet → rows added
+     [ ] Check Proposals_Tracker sheet → rows added
+     [ ] Check Houston_New_Start_Log → rows added
+     [ ] Verify data accuracy in all sheets
+
+  ✅ Operations Integration:
+     [ ] Submit sale with "Save & Submit to Ops"
+     [ ] Open Operations dashboard
+     [ ] Verify sale appears in queue
+     [ ] Verify notification shown
+     [ ] Verify sale details correct
+
+  ✅ Edge Cases:
+     [ ] Submit with no entries → shows error
+     [ ] Submit with missing required fields → validation error
+     [ ] Close modal mid-entry → data persists
+     [ ] Network error → shows error message
+     [ ] Multiple entries → all saved correctly
+
+  If all tests pass, you're ready to go! 🚀
+
+  ===============================================================================
+-->
