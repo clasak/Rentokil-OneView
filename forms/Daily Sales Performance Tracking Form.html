@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily Sales Performance Tracking Form</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #5f6368;
+            border-bottom: 3px solid #673ab7;
+            padding-bottom: 10px;
+        }
+        .subtitle {
+            color: #5f6368;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #202124;
+            font-weight: 500;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .checkbox-group {
+            margin-top: 10px;
+        }
+        .checkbox-item {
+            margin-bottom: 8px;
+        }
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        .button-group {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .submit-btn {
+            background-color: #673ab7;
+            color: white;
+        }
+        .clear-btn {
+            background-color: transparent;
+            color: #673ab7;
+        }
+        .required {
+            color: #d93025;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Daily Sales Performance Tracking Form</h1>
+        <p class="subtitle">Capture key metrics for sales performance and future opportunities.</p>
+
+        <form id="salesForm">
+            <div class="form-group">
+                <label>Email <span class="required">*</span></label>
+                <input type="email" name="email" placeholder="Your email" required>
+            </div>
+
+            <div class="form-group">
+                <label>AE (Account Executive) Name</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="april" name="ae" value="APRIL SHANE-98">
+                        <label for="april" style="display: inline;">APRIL SHANE-98</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="donna" name="ae" value="DONNA PATE-98">
+                        <label for="donna" style="display: inline;">DONNA PATE-98</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="cody" name="ae" value="CODY LYTLE-98">
+                        <label for="cody" style="display: inline;">CODY LYTLE-98</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="jon" name="ae" value="JON ERIVES-98">
+                        <label for="jon" style="display: inline;">JON ERIVES-98</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="blair" name="ae" value="BLAIR SLOAT-226">
+                        <label for="blair" style="display: inline;">BLAIR SLOAT-226</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="anthony" name="ae" value="ANTHONY ACEVEDO-2386">
+                        <label for="anthony" style="display: inline;">ANTHONY ACEVEDO-2386</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chris" name="ae" value="CHRIS HORNER-2386">
+                        <label for="chris" style="display: inline;">CHRIS HORNER-2386</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>How many Proposal were delivered today</label>
+                <input type="text" name="proposals_delivered" placeholder="Your answer">
+            </div>
+
+            <div class="form-group">
+                <label>Number of PRP LOBs (Lines of Business) included on proposals delivered today (Crawling insect, Rodent, Fly, Bird, Drain etc)</label>
+                <input type="text" name="prp_lobs_delivered" placeholder="Your answer">
+            </div>
+
+            <div class="form-group">
+                <label>PRP LOBs (Lines of Business) Sold today, included on proposals signed today (Crawling insect, Rodent, Fly, Bird, Drain etc)</label>
+                <input type="text" name="prp_lobs_sold" placeholder="Your answer">
+            </div>
+
+            <div class="form-group">
+                <label>Total Dollars SLD (Sold) Amount today</label>
+                <input type="text" name="total_dollars_sold" placeholder="Your answer">
+            </div>
+
+            <div class="form-group">
+                <label>Next Day CONF (Proposals to be delivered) - Monday if reporting Friday</label>
+                <input type="text" name="next_day_conf" placeholder="Your answer">
+            </div>
+
+            <div class="form-group">
+                <label>Total Dollars Proposed Today</label>
+                <input type="text" name="total_dollars_proposed" placeholder="Your answer">
+            </div>
+
+            <div class="form-group">
+                <label>Events (First time appoint, Site Assessment, Proposals, In Person Follow-up) Completed today</label>
+                <input type="text" name="events_completed" placeholder="Your answer">
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="clear-btn" onclick="document.getElementById('salesForm').reset()">Clear form</button>
+                <button type="submit" class="submit-btn">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('salesForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Form submission is a placeholder. Connect to your backend API to process form data.');
+        });
+    </script>
+</body>
+</html>
