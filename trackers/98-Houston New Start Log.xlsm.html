@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>98-Houston New Start Log.xlsm</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #0f9d58;
+        }
+        .sheet-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            margin-bottom: 20px;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            font-size: 11px;
+        }
+        th {
+            background-color: #00bcd4;
+            color: white;
+            padding: 10px 5px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        td {
+            padding: 8px 5px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        tr.sales-fill {
+            background-color: #ffcccb;
+        }
+        tr.om-fill {
+            background-color: #ffff99;
+        }
+        tr.november {
+            background-color: #90ee90;
+        }
+        .header-note {
+            background-color: #c53030;
+            color: white;
+            padding: 10px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .tab {
+            padding: 8px 15px;
+            background-color: white;
+            border: 1px solid #dadce0;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .tab.active {
+            background-color: #e8f0fe;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="sheet-info">
+        <h1>98-Houston New Start Log.xlsm</h1>
+        <p><strong>Sheet:</strong> RED SALES FILLS IN AND YELLOW OM'S FILL IN.</p>
+    </div>
+
+    <div class="note">
+        <strong>Instructions:</strong>
+        <ul>
+            <li>RED rows - Sales fills in these fields</li>
+            <li>YELLOW rows - Operations Manager fills in these fields</li>
+            <li>GREEN rows - November section entries</li>
+        </ul>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active">2025</div>
+    </div>
+
+    <div class="header-note">
+        RED SALES FILLS IN AND YELLOW OM'S FILL IN.
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Sold Date</th>
+                <th>ACCOUNT NAME</th>
+                <th>SERVICE ADDRESS</th>
+                <th>Sales Rep(s) Involved</th>
+                <th>Initial / JOB 1X Merchandize / Merchandise</th>
+                <th>Maintenance (CONTRACT) One Off / Job</th>
+                <th>Type - Crawling (GPC, Ant, Roach, etc)</th>
+                <th>Proposal Spec'd Annual Needs (Visits)</th>
+                <th>Log Days PRP #0F</th>
+                <th>EAG Spec'd a RPCAA (YES / NO)</th>
+                <th>Confirmed Customer RCD (every past 48 hrs)</th>
+                <th>Customer Contact Month</th>
+                <th>Operations Manager</th>
+                <th>Assigned Specialist</th>
+                <th>Have Been Contact (Yes)</th>
+                <th>Initial / Installation Service Complete</th>
+                <th>POC Name/Phone#</th>
+                <th>Confirmed Return with POC</th>
+                <th>SPECIAL NOTES / Equipment Overview</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="sales-fill">
+                <td>10/22/2025</td>
+                <td>BellaGreen(Vintage)</td>
+                <td>19633 Sharston Rd, Suburban, TX 77479</td>
+                <td></td>
+                <td>$1,010.00</td>
+                <td></td>
+                <td>Job</td>
+                <td>1</td>
+                <td>n</td>
+                <td>Y</td>
+                <td>10/30/2025</td>
+                <td>10/30/2025</td>
+                <td>Joaquin</td>
+                <td>Tydezy</td>
+                <td>Y</td>
+                <td>Y</td>
+                <td>Data Manager 713-680-0907</td>
+                <td>10/23</td>
+                <td>lawn baltimore Container - node 100 AV - details see PDF</td>
+            </tr>
+            <tr class="sales-fill">
+                <td>10/22/2025</td>
+                <td>BellaGreen(San Antonio)</td>
+                <td>215 Onion Creek Rd, Suburban, TX 77479</td>
+                <td></td>
+                <td>$1,010.00</td>
+                <td></td>
+                <td>Job</td>
+                <td>1</td>
+                <td>n</td>
+                <td>Y</td>
+                <td>10/30/2025</td>
+                <td>10/30/2025</td>
+                <td>Joaquin</td>
+                <td>Tydezy</td>
+                <td>Y</td>
+                <td>Y</td>
+                <td>Data Manager 713-680-0907</td>
+                <td>10/23</td>
+                <td>lawn baltimore Container - node 100 AV - details see PDF</td>
+            </tr>
+            <tr class="november">
+                <td colspan="19" style="text-align: center; font-weight: bold; background-color: #90ee90;">
+                    November
+                </td>
+            </tr>
+            <tr class="sales-fill">
+                <td>11/3/2025</td>
+                <td>Pappadeaux DX2</td>
+                <td>13080 HWY 290 @ Hollister, 77040</td>
+                <td>April</td>
+                <td>$900.00</td>
+                <td>$395.00</td>
+                <td>Contract</td>
+                <td>24</td>
+                <td>n</td>
+                <td>n</td>
+                <td>13683657</td>
+                <td>11/25</td>
+                <td>Bruce</td>
+                <td>Marcos</td>
+                <td></td>
+                <td></td>
+                <td>Chris Westins 713-462-1203</td>
+                <td></td>
+                <td>2 full clean out service with 2 regular services and 6 RBB to be installed</td>
+            </tr>
+            <tr class="sales-fill">
+                <td>11/3/2025</td>
+                <td>Pappadeaux DX1</td>
+                <td>7110 FM 1960 W @ Kuykendahl, 77069</td>
+                <td>April</td>
+                <td>$900.00</td>
+                <td>$395.00</td>
+                <td>Contract</td>
+                <td>24</td>
+                <td>n</td>
+                <td>n</td>
+                <td>13683654</td>
+                <td>11/01</td>
+                <td>Bruce</td>
+                <td>Brandon</td>
+                <td></td>
+                <td></td>
+                <td>Marcie Windley 713-628-4055</td>
+                <td></td>
+                <td>2 full clean out service with 2 regular services and 6 RBB to be installed</td>
+            </tr>
+            <tr>
+                <td colspan="19" style="text-align: center; padding: 30px; color: #999;">
+                    Additional entries would be displayed here...
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        console.log('98-Houston New Start Log loaded');
+    </script>
+</body>
+</html>
