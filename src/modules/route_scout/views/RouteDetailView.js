@@ -1,7 +1,6 @@
 import { api } from '../api.js';
-import { Toast } from '../components/Toast.js';
 
-export const RouteDetailView = ({ state, navigate }) => {
+export const RouteDetailView = ({ state, navigate, toast }) => {
   const wrap = document.createElement('div');
 
   const summary = document.createElement('div');
@@ -45,11 +44,11 @@ export const RouteDetailView = ({ state, navigate }) => {
   wrap.append(summary, list, sticky);
 
   summary.querySelector('#rs-optimize').onclick = async () => {
+    toast.show('Optimizing route...');
     const res = await api.optimizeRoute(state.state.route.stops);
-    const result = (res && res.route) ? res : { route: Array.isArray(res) ? res : [], estimatedTime: null, suggestions: [], warnings: [] };
-    state.state.route.stops = result.route;
-    const tip = `Route optimized${result.estimatedTime ? ` (~${Math.round(result.estimatedTime)} min)` : ''}${(result.suggestions && result.suggestions.length) ? ` • ${result.suggestions[0]}` : ''}`;
-    Toast.show(tip);
+    const result = Array.isArray(res) ? res : (res.route || []);
+    state.state.route.stops = result;
+    toast.show(`Route optimized with ${result.length} stops`);
     navigate('route');
   };
 
@@ -58,15 +57,31 @@ export const RouteDetailView = ({ state, navigate }) => {
     const rmId = e.target.closest('button')?.dataset.remove;
     if (mapId) navigate('map');
     if (rmId) {
+      const stop = state.state.route.stops.find(s => s.id === rmId);
       state.removeFromRoute(rmId);
+      toast.show(`Removed ${stop?.name || 'stop'} from route`);
       navigate('route');
     }
   });
 
   sticky.querySelector('#rs-preview').onclick = () => navigate('map');
   sticky.querySelector('#rs-save').onclick = async () => {
-    const res = await api.saveRoute(state.state.route);
-    if (res?.ok) Toast.show('Route saved and synced');
+    if (state.state.route.stops.length === 0) {
+      toast.show('Add stops to your route before saving');
+      return;
+    }
+    toast.show('Saving route...');
+    const routeData = {
+      date: state.state.date,
+      name: `Route ${new Date().toLocaleDateString()}`,
+      stops: state.state.route.stops
+    };
+    const res = await api.saveRoute(routeData, state.state.currentUser);
+    if (res?.success) {
+      toast.show(`Route saved successfully! ID: ${res.routeId}`);
+    } else {
+      toast.show('Failed to save route');
+    }
   };
 
   return wrap;

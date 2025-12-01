@@ -26,6 +26,34 @@ export const initRouter = (config) => {
   });
 };
 
+export const createRouter = (routes) => {
+  const routeHandlers = routes;
+
+  const handleRoute = () => {
+    const { name, params } = parseHash();
+    if (initialized) historyStack.push(current);
+    current = { name, params };
+
+    const handler = routeHandlers[name] || routeHandlers['home'];
+    if (handler) {
+      if (name === 'appointment' && params.id) {
+        handler(params.id);
+      } else {
+        handler();
+      }
+    }
+  };
+
+  // Initial route
+  handleRoute();
+  initialized = true;
+
+  // Listen to hash changes
+  window.addEventListener('hashchange', handleRoute);
+
+  return { back };
+};
+
 export const navigate = (name, params = {}) => {
   if (name === 'appointment' && params.id) {
     location.hash = `appointment/${params.id}`;
